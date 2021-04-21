@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <iostream>
 
 #include "oh_my_vslam/core/camera.h"
 
@@ -38,12 +37,10 @@ TEST(CameraTest, CameraWithoutDistortion) {
 TEST(CameraTest, CameraWithDistortion) {
   Eigen::Vector3d pt(x, y, z);
   Eigen::Vector2d px3 = cam3.Project(pt);
-  std::cout << "Pixel: " << px3.transpose() << std::endl;
   Eigen::Vector3d pt_recover = cam3.InverseProject(px3, z);
   EXPECT_NEAR(pt.x(), pt_recover.x(), 1e-6);
   EXPECT_NEAR(pt.y(), pt_recover.y(), 1e-6);
   EXPECT_NEAR(pt.z(), pt_recover.z(), 1e-6);
-  std::cout << "Point: " << pt_recover.transpose() << std::endl;
 }
 
 }  // namespace oh_my_vslam

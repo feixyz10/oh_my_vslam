@@ -21,18 +21,20 @@ class Camera {
          const Eigen::Matrix<double, 5, 1> &distortion_params =
              Eigen::Matrix<double, 5, 1>::Zero());
 
+  ~Camera() = default;
+
   // Set all distortion parameters to zero
   void SetZeroDistortion();
 
   // Project a point in world coordinate to the image plane
   Eigen::Vector2d Project(const Eigen::Vector3d &pt_w,
-                          const common::Pose3d &T_w2c = {}) const;
+                          const common::Pose3d &pose_w2c = {}) const;
 
   // Inverse project a pixel to world coordinate, here the `depth`
   // is measured in camera coordinate
   Eigen::Vector3d InverseProject(const Eigen::Vector2d &pix,
                                  const double depth = 1.0,
-                                 const common::Pose3d &T_c2w = {}) const;
+                                 const common::Pose3d &pose_c2w = {}) const;
 
   Eigen::Vector4d intrinsic_params() const;
 

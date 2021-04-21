@@ -8,4 +8,5 @@ add_executable(camera_test
 target_link_libraries(camera_test
     gtest_main
     core
+    ${OpenCV_LIBS}
 )

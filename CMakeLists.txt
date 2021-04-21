@@ -5,11 +5,11 @@ set(CMAKE_CXX_FLAGS "-std=c++17 -Wall")
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-
-message("${CMAKE_CURRENT_SOURCE_DIR}/build/lib")
+find_package(OpenCV REQUIRED)
+# message("${OpenCV_INCLUDE_DIRS}    ${OpenCV_INCLUDE_DIRS}    ${OpenCV_LIBS}")
+find_package(g3log REQUIRED SYSTEM)
+find_package(PCL QUIET)
+find_package(GTest REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -18,10 +18,6 @@ find_package(catkin REQUIRED COMPONENTS
   rosbag
   sensor_msgs
 )
-
-find_package(g3log REQUIRED SYSTEM)
-find_package(PCL QUIET)
-find_package(GTest REQUIRED)
 
 catkin_package(
  CATKIN_DEPENDS roscpp rospy std_msgs
@@ -32,6 +28,7 @@ include_directories(SYSTEM
   ${G3LOG_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${GTEST_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 include_directories(
@@ -40,3 +37,7 @@ include_directories(
 
 add_subdirectory(common)
 add_subdirectory(oh_my_vslam)
+
+# target_link_libraries(xxx
+#   ${OpenCV_LIBS}
+# )

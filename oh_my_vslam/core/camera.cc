@@ -36,18 +36,18 @@ void Camera::SetZeroDistortion() {
 }
 
 Eigen::Vector2d Camera::Project(const Eigen::Vector3d &pt_w,
-                                const common::Pose3d &T_w2c) const {
-  Eigen::Vector3d pt_c = T_w2c * pt_w;
+                                const common::Pose3d &pose_w2c) const {
+  Eigen::Vector3d pt_c = pose_w2c * pt_w;
   Eigen::Vector2d pt = Distort(Normalize(pt_c));
   return {fx_ * pt.x() + cx_, fy_ * pt.y() + cy_};
 }
 
 Eigen::Vector3d Camera::InverseProject(const Eigen::Vector2d &pix,
                                        const double depth,
-                                       const common::Pose3d &T_c2w) const {
+                                       const common::Pose3d &pose_c2w) const {
   Eigen::Vector2d pt = Undistort(Normalize(pix));
   Eigen::Vector3d pt_c = depth * pt.homogeneous();
-  return T_c2w * pt_c;
+  return pose_c2w * pt_c;
 };
 
 Eigen::Vector4d Camera::intrinsic_params() const {
