@@ -23,13 +23,24 @@ class Frontend {
   using ConstPtr = std::shared_ptr<const Frontend>;
 
  public:
-  Frontend() = default;
+  Frontend(const StereoCamera::ConstPtr &camera, const YAML::Node &config)
+      : camera_(camera), config_(config){};
 
-  bool TrackNewFrame(const Frame::Ptr &frame);
+  void Process(const StereoFrame::Ptr &frame);
+
+  FrontendState state() const {
+    return state_;
+  }
 
  protected:
+  bool TrackFrameFeature(const StereoFrame::Ptr &frame);
+
+  bool Initialize(const StereoFrame::Ptr &frame);
+
   FrontendState state_ = FrontendState::INITIALIZING;
-  Camera::ConstPtr camera_ = nullptr;
+  StereoCamera::ConstPtr camera_ = nullptr;
+  StereoFrame::Ptr frame_last_;
+  YAML::Node config_;
 };
 
 }  // namespace oh_my_vslam

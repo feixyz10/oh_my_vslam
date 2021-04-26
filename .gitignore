@@ -1,6 +1,6 @@
 /.clangd
 /.vscode
 /build
-.clang-format
-compile_commands.json
-*.jpg
+# .clang-format
+# compile_commands.json
+# *.jpg

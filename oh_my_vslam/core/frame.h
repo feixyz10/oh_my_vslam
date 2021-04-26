@@ -110,18 +110,13 @@ class StereoFrame : public Frame {
 
  public:
   StereoFrame(const double timestamp, const cv::Mat &img_lft,
-              const cv::Mat &img_rgt, const Camera::ConstPtr &camera = nullptr,
-              const double baseline = 0.0, const common::Pose3d &pose_c2w = {})
-      : Frame(timestamp, img_lft, camera, pose_c2w),
-        img_rgt_(img_rgt),
-        baseline_(baseline) {}
+              const cv::Mat &img_rgt,
+              const StereoCamera::ConstPtr &camera = nullptr,
+              const common::Pose3d &pose_c2w = {})
+      : Frame(timestamp, img_lft, camera, pose_c2w), img_rgt_(img_rgt) {}
 
   const cv::Mat &img_rgt() const {
     return img_rgt_;
-  }
-
-  double baseline() const {
-    return baseline_;
   }
 
   const std::vector<std::shared_ptr<Feature>> &features_rgt() const {
@@ -132,14 +127,10 @@ class StereoFrame : public Frame {
     return features_rgt_;
   }
 
-  double Disparity(const Eigen::Vector3d &pt_w) {
-    Eigen::Vector3d pt_c = pose_w2c_ * pt_w;
-    return baseline_ * camera_->intrinsic_params()(0) / pt_c.z();
-  }
+  bool Triangulation();
 
  protected:
-  cv::Mat img_rgt_;       // right image
-  double baseline_{0.0};  // baseline
+  cv::Mat img_rgt_;  // right image
   std::vector<std::shared_ptr<Feature>> features_rgt_;
   DISALLOW_COPY_AND_ASSIGN(StereoFrame);
 };

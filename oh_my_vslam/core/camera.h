@@ -12,8 +12,6 @@ class Camera {
   using ConstPtr = std::shared_ptr<const Camera>;
 
  public:
-  Camera() = default;
-
   Camera(double fx, double fy, double cx, double cy, double k1 = 0.0,
          double k2 = 0.0, double k3 = 0.0, double p1 = 0.0, double p2 = 0.0);
 
@@ -66,6 +64,51 @@ class Camera {
   // distortion parameters
   double k1_{0.0}, k2_{0.0}, k3_{0.0}, p1_{0.0}, p2_{0.0};
   bool is_zero_distortion_ = true;
+};
+
+class StereoCamera : public Camera {
+ public:
+  using Ptr = std::shared_ptr<StereoCamera>;
+  using ConstPtr = std::shared_ptr<const StereoCamera>;
+
+ public:
+  // All distortion parameters must be zero
+  StereoCamera(double fx, double fy, double cx, double cy, double baseline)
+      : Camera(fx, fy, cx, cy), baseline_(baseline) {}
+
+  StereoCamera(const Eigen::Vector4d &intrinsic_params, double baseline)
+      : Camera(intrinsic_params), baseline_(baseline) {}
+
+  double baseline() const {
+    return baseline_;
+  }
+
+  Eigen::Vector2d ProjectToLeft(const Eigen::Vector3d &pt_w,
+                                const common::Pose3d &pose_w2c = {}) const {
+    return Project(pt_w, pose_w2c);
+  }
+
+  Eigen::Vector2d ProjectToRight(const Eigen::Vector3d &pt_w,
+                                 const common::Pose3d &pose_w2c = {}) const {
+    return Project(pt_w, pose_w2c) -
+           Eigen::Vector2d(Disparity(pt_w, pose_w2c), 0);
+  }
+
+  double Disparity(const Eigen::Vector3d &pt_w,
+                   const common::Pose3d &pose_w2c = {}) const {
+    Eigen::Vector3d pt_c = pose_w2c * pt_w;
+    return baseline_ * fx_ / pt_c.z();
+  }
+
+  Eigen::Vector3d Triangulation(const Eigen::Vector2d &pt_lft,
+                                const Eigen::Vector2d &pt_rgt,
+                                const common::Pose3d &pose_c2w = {}) const {
+    double z = baseline_ * fx_ / (std::abs(pt_lft.x() - pt_rgt.x()) + 1e-9);
+    return InverseProject(pt_lft, z, pose_c2w);
+  }
+
+ protected:
+  double baseline_;
 };
 
 }  // namespace oh_my_vslam
