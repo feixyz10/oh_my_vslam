@@ -20,7 +20,7 @@ class Frontend {
   using ConstPtr = std::shared_ptr<const Frontend>;
 
  public:
-  Frontend(const StereoCamera::ConstPtr &camera, const YAML::Node &config);
+  Frontend(const StereoCamera::ConstPtr &camera, const YAML::Node &config = {});
 
   void Process(const StereoFrame::Ptr &frame);
 
@@ -36,8 +36,6 @@ class Frontend {
   void InsertKeyframe(const StereoFrame::Ptr &frame);
 
   void Reset();
-
-  bool Triangulation(const StereoFrame::Ptr &frame);
 
   FrontendState state_ = FrontendState::INITIALIZING;
   StereoCamera::ConstPtr camera_ = nullptr;

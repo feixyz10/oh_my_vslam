@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 #include "common/geometry/pose3d.h"
 #include "oh_my_vslam/core/frame.h"
 #include "oh_my_vslam/core/map.h"
@@ -16,11 +18,11 @@ class VO {
   VO() = default;
 
   // return: inlier number
-  size_t Process(const StereoFrame::Ptr &frame, bool init = false);
+  size_t PnP(const Frame::Ptr &frame);
+
+  size_t Triangulate(const StereoFrame::Ptr &frame);
 
  private:
-  size_t Triangulation(const StereoFrame::Ptr &frame);
-
   void FindOutliers(const Frame::ConstPtr &frame,
                     std::vector<size_t> *outlier_indices) const;
 

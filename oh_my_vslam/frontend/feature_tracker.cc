@@ -67,8 +67,8 @@ size_t FeatureTracker::Track(const Frame::ConstPtr &frame_last,
       ++num_tracked;
     }
   }
-  AINFO << "Frame " << frame_curr->id() << ": " << num_tracked
-        << " features tracked on current frame from last image.";
+  AINFO_IF(verbose_) << "Frame " << frame_curr->id() << ": " << num_tracked
+                     << " features tracked on current frame from last image.";
   return num_tracked;
 }
 

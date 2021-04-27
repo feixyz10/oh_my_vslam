@@ -7,3 +7,6 @@ target_link_libraries(feature_tracker_test frontend core common ${THIRD_PARTY_LI
 
 add_executable(vo_test vo_test.cpp)
 target_link_libraries(vo_test frontend core common ${THIRD_PARTY_LIBS})
+
+add_executable(frontend_test frontend_test.cpp)
+target_link_libraries(frontend_test frontend core common ${THIRD_PARTY_LIBS})

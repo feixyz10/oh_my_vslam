@@ -1,9 +1,10 @@
+#include "oh_my_vslam/frontend/vo.h"
+
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
 #include "common/common.h"
 #include "oh_my_vslam/frontend/feature_tracker.h"
-#include "oh_my_vslam/frontend/vo.h"
 
 using namespace common;
 using namespace oh_my_vslam;
@@ -28,13 +29,13 @@ int main(int argc, char **argv) {
   StereoFrame::Ptr frame2{new StereoFrame{0.0, im2_lft, im2_rgt, camera}};
   AINFO << frame1->camera()->ToString();
 
-  FeatureTracker extractor(100, true);
+  FeatureTracker extractor(150, true);
   extractor.Track(frame1);
   VO vo;
-  vo.Process(frame1, true);
+  vo.Triangulate(frame1);
 
   extractor.Track(frame1, frame2);
-  vo.Process(frame2);
+  vo.PnP(frame2);
   AINFO << frame2->pose_c2w().ToString();
   AINFO << "Error: " << (t - frame2->pose_c2w().t_vec()).norm()
         << ", relative error: "

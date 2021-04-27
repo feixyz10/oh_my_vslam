@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <memory>
 #include <opencv2/core/core.hpp>
 
@@ -35,6 +36,14 @@ class Frame {
 
   double timestamp() const {
     return timestamp_;
+  }
+
+  bool is_keyframe() const {
+    return is_keyframe_;
+  }
+
+  size_t keyframe_id() const {
+    return keyframe_id_;
   }
 
   const cv::Mat &img() const {

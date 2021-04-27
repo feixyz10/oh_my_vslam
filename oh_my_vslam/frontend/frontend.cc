@@ -5,7 +5,8 @@ namespace oh_my_vslam {
 Frontend::Frontend(const StereoCamera::ConstPtr &camera,
                    const YAML::Node &config)
     : camera_(camera), config_(config) {
-  feature_tracker_.reset(new FeatureTracker(150));
+  feature_tracker_.reset(new FeatureTracker(150, true));
+  vo_.reset(new VO);
 };
 
 void Frontend::Process(const StereoFrame::Ptr &frame) {
@@ -29,7 +30,7 @@ void Frontend::Initialize(const StereoFrame::Ptr &frame) {
     AINFO << "Initialization failed";
     return;
   }
-  vo_->Process(frame, true);
+  vo_->Triangulate(frame);
   state_ = FrontendState::TRACKING;
   InsertKeyframe(frame);
   AINFO << "Initialization OK";
@@ -37,25 +38,26 @@ void Frontend::Initialize(const StereoFrame::Ptr &frame) {
 
 void Frontend::Track(const StereoFrame::Ptr &frame) {
   size_t number_tracked = feature_tracker_->Track(frame_last_, frame);
-  if (number_tracked < 50) {
+  if (number_tracked < 36) {
     state_ = FrontendState::LOST;
     AERROR << "Tracking lost";
     return;
   }
-  size_t number_inlier = vo_->Process(frame);
-  if (number_inlier < 50) {
+  size_t number_inlier = vo_->PnP(frame);
+  if (number_inlier < 36) {
     state_ = FrontendState::LOST;
     AERROR << "Tracking lost";
     return;
   }
   AINFO << "Tracking OK";
-  if (number_inlier < 66) {
+  if (number_inlier < 60) {
     InsertKeyframe(frame);
   }
 }
 
 void Frontend::InsertKeyframe(const StereoFrame::Ptr &frame) {
-  feature_tracker_->Track(frame);
+  // feature_tracker_->Track(frame);
+  vo_->Triangulate(frame);
   frame->SetKeyFrame();
 }
 
