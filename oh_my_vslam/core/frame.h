@@ -17,8 +17,8 @@ class Frame {
   using ConstPtr = std::shared_ptr<const Frame>;
 
  public:
-  Frame(const double timestamp, const cv::Mat &img,
-        const Camera::ConstPtr &camera, const common::Pose3d &pose_c2w = {})
+  Frame(const double timestamp, const cv::Mat &img, const Camera::Ptr &camera,
+        const common::Pose3d &pose_c2w = {})
       : timestamp_(timestamp),
         img_(img),
         camera_(camera),
@@ -45,8 +45,12 @@ class Frame {
     return camera_;
   }
 
-  common::Pose3d pose() const {
+  const common::Pose3d &pose_c2w() const {
     return pose_c2w_;
+  }
+
+  const common::Pose3d &pose_w2c() const {
+    return pose_w2c_;
   }
 
   void SetPose(const common::Pose3d &pose_c2w) {
@@ -74,7 +78,7 @@ class Frame {
   bool is_keyframe_ = false;
   size_t keyframe_id_ = 0;
   cv::Mat img_;
-  Camera::ConstPtr camera_{nullptr};
+  Camera::Ptr camera_{nullptr};
   common::Pose3d pose_c2w_{}, pose_w2c_{};
   std::vector<std::shared_ptr<Feature>> features_;
 
@@ -90,7 +94,7 @@ class RGBDFrame : public Frame {
 
  public:
   RGBDFrame(const double timestamp, const cv::Mat &img, const cv::Mat &depth,
-            const Camera::ConstPtr &camera = nullptr,
+            const Camera::Ptr &camera = nullptr,
             const common::Pose3d &pose_c2w = {})
       : Frame(timestamp, img, camera, pose_c2w), depth_(depth) {}
 
@@ -110,8 +114,7 @@ class StereoFrame : public Frame {
 
  public:
   StereoFrame(const double timestamp, const cv::Mat &img_lft,
-              const cv::Mat &img_rgt,
-              const StereoCamera::ConstPtr &camera = nullptr,
+              const cv::Mat &img_rgt, const StereoCamera::Ptr &camera = nullptr,
               const common::Pose3d &pose_c2w = {})
       : Frame(timestamp, img_lft, camera, pose_c2w), img_rgt_(img_rgt) {}
 
@@ -127,7 +130,9 @@ class StereoFrame : public Frame {
     return features_rgt_;
   }
 
-  bool Triangulation();
+  StereoCamera::ConstPtr stereo_camera() const {
+    return std::static_pointer_cast<StereoCamera>(camera_);
+  }
 
  protected:
   cv::Mat img_rgt_;  // right image

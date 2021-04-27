@@ -71,7 +71,7 @@ Eigen::Matrix<double, 5, 1> Camera::distortion_params() const {
 std::string Camera::ToString() const {
   std::ostringstream oss;
   oss << std::fixed << std::setprecision(3);
-  oss << "[Camera intrinsic: " << fx_ << " " << fy_ << " " << cx_ << " " << cy_
+  oss << "[intrinsic: " << fx_ << " " << fy_ << " " << cx_ << " " << cy_
       << " distortion: ";
   if (is_zero_distortion_) {
     oss << "none";
@@ -119,6 +119,46 @@ Eigen::Vector2d Camera::Undistort(const Eigen::Vector2d &pt) const {
     y = (y_distorted - 2 * p2_ * xy - p1_ * (r2 + 2 * y2)) * k_r;
   }
   return {x, y};
+}
+
+StereoCamera::StereoCamera(double fx, double fy, double cx, double cy,
+                           double baseline)
+    : Camera(fx, fy, cx, cy), baseline_(baseline) {}
+
+StereoCamera::StereoCamera(const Eigen::Vector4d &intrinsic_params,
+                           double baseline)
+    : Camera(intrinsic_params), baseline_(baseline) {}
+
+Eigen::Vector2d StereoCamera::ProjectToLeft(
+    const Eigen::Vector3d &pt_w, const common::Pose3d &pose_w2c) const {
+  return Project(pt_w, pose_w2c);
+}
+
+Eigen::Vector2d StereoCamera::ProjectToRight(
+    const Eigen::Vector3d &pt_w, const common::Pose3d &pose_w2c) const {
+  return Project(pt_w, pose_w2c) -
+         Eigen::Vector2d(Disparity(pt_w, pose_w2c), 0);
+}
+
+double StereoCamera::Disparity(const Eigen::Vector3d &pt_w,
+                               const common::Pose3d &pose_w2c) const {
+  Eigen::Vector3d pt_c = pose_w2c * pt_w;
+  return baseline_ * fx_ / pt_c.z();
+}
+
+Eigen::Vector3d StereoCamera::Triangulation(
+    const Eigen::Vector2d &pt_lft, const Eigen::Vector2d &pt_rgt,
+    const common::Pose3d &pose_c2w) const {
+  double z = baseline_ * fx_ / (std::abs(pt_lft.x() - pt_rgt.x()) + 1e-9);
+  return InverseProject(pt_lft, z, pose_c2w);
+}
+
+std::string StereoCamera::ToString() const {
+  std::ostringstream oss;
+  oss << std::fixed << std::setprecision(3);
+  oss << "[intrinsic: " << fx_ << " " << fy_ << " " << cx_ << " " << cy_
+      << " baseline: " << baseline_ << "]";
+  return oss.str();
 }
 
 }  // namespace oh_my_vslam

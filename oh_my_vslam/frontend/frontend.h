@@ -7,15 +7,11 @@
 #include "oh_my_vslam/core/frame.h"
 #include "oh_my_vslam/core/map.h"
 #include "oh_my_vslam/core/map_point.h"
+#include "oh_my_vslam/frontend/feature_extractor.h"
 
 namespace oh_my_vslam {
 
-enum class FrontendState {
-  INITIALIZING = 0,
-  TRACKING_GOOD,
-  TRACKING_BAD,
-  LOST
-};
+enum class FrontendState { INITIALIZING = 0, TRACKING, LOST };
 
 class Frontend {
  public:
@@ -23,8 +19,7 @@ class Frontend {
   using ConstPtr = std::shared_ptr<const Frontend>;
 
  public:
-  Frontend(const StereoCamera::ConstPtr &camera, const YAML::Node &config)
-      : camera_(camera), config_(config){};
+  Frontend(const StereoCamera::ConstPtr &camera, const YAML::Node &config);
 
   void Process(const StereoFrame::Ptr &frame);
 
@@ -33,13 +28,21 @@ class Frontend {
   }
 
  protected:
-  bool TrackFrameFeature(const StereoFrame::Ptr &frame);
+  void Initialize(const StereoFrame::Ptr &frame);
 
-  bool Initialize(const StereoFrame::Ptr &frame);
+  void UpdateMap() const;
+
+  void Track(const StereoFrame::Ptr &frame);
+
+  void InsertKeyframe(const StereoFrame::Ptr &frame);
+
+  void Reset();
+
+  bool Triangulation(const StereoFrame::Ptr &frame);
 
   FrontendState state_ = FrontendState::INITIALIZING;
   StereoCamera::ConstPtr camera_ = nullptr;
-  StereoFrame::Ptr frame_last_;
+  std::unique_ptr<FeatureExtractor> feature_extractor_;
   YAML::Node config_;
 };
 

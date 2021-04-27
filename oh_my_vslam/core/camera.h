@@ -19,7 +19,7 @@ class Camera {
          const Eigen::Matrix<double, 5, 1> &distortion_params =
              Eigen::Matrix<double, 5, 1>::Zero());
 
-  ~Camera() = default;
+  virtual ~Camera() = default;
 
   // Set all distortion parameters to zero
   void SetZeroDistortion();
@@ -44,7 +44,7 @@ class Camera {
     return is_zero_distortion_;
   }
 
-  std::string ToString() const;
+  virtual std::string ToString() const;
 
  protected:
   // Project a point to the normalized image plane (i.e. depth = 1.0)
@@ -73,39 +73,28 @@ class StereoCamera : public Camera {
 
  public:
   // All distortion parameters must be zero
-  StereoCamera(double fx, double fy, double cx, double cy, double baseline)
-      : Camera(fx, fy, cx, cy), baseline_(baseline) {}
+  StereoCamera(double fx, double fy, double cx, double cy, double baseline);
 
-  StereoCamera(const Eigen::Vector4d &intrinsic_params, double baseline)
-      : Camera(intrinsic_params), baseline_(baseline) {}
+  StereoCamera(const Eigen::Vector4d &intrinsic_params, double baseline);
 
   double baseline() const {
     return baseline_;
   }
 
   Eigen::Vector2d ProjectToLeft(const Eigen::Vector3d &pt_w,
-                                const common::Pose3d &pose_w2c = {}) const {
-    return Project(pt_w, pose_w2c);
-  }
+                                const common::Pose3d &pose_w2c = {}) const;
 
   Eigen::Vector2d ProjectToRight(const Eigen::Vector3d &pt_w,
-                                 const common::Pose3d &pose_w2c = {}) const {
-    return Project(pt_w, pose_w2c) -
-           Eigen::Vector2d(Disparity(pt_w, pose_w2c), 0);
-  }
+                                 const common::Pose3d &pose_w2c = {}) const;
 
   double Disparity(const Eigen::Vector3d &pt_w,
-                   const common::Pose3d &pose_w2c = {}) const {
-    Eigen::Vector3d pt_c = pose_w2c * pt_w;
-    return baseline_ * fx_ / pt_c.z();
-  }
+                   const common::Pose3d &pose_w2c = {}) const;
 
   Eigen::Vector3d Triangulation(const Eigen::Vector2d &pt_lft,
                                 const Eigen::Vector2d &pt_rgt,
-                                const common::Pose3d &pose_c2w = {}) const {
-    double z = baseline_ * fx_ / (std::abs(pt_lft.x() - pt_rgt.x()) + 1e-9);
-    return InverseProject(pt_lft, z, pose_c2w);
-  }
+                                const common::Pose3d &pose_c2w = {}) const;
+
+  std::string ToString() const override;
 
  protected:
   double baseline_;

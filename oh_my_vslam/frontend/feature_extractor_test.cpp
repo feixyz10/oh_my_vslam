@@ -7,9 +7,10 @@
 using namespace common;
 using namespace oh_my_vslam;
 
-Camera::Ptr camera{new Camera{7.070912000000e+02, 7.070912000000e+02,
-                              6.018873000000e+02, 1.831104000000e+02}};
 double baseline = 0.53715065;
+StereoCamera::Ptr camera{
+    new StereoCamera{7.070912000000e+02, 7.070912000000e+02, 6.018873000000e+02,
+                     1.831104000000e+02, baseline}};
 
 int main(int argc, char **argv) {
   InitG3Logging();
@@ -23,10 +24,10 @@ int main(int argc, char **argv) {
   AINFO << "Image shape: " << im1_lft.rows << " x " << im1_lft.cols << " x "
         << im1_lft.channels() << ": " << im1_lft.type();
 
-  StereoFrame::Ptr frame1{
-      new StereoFrame{0.0, im1_lft, im1_rgt, camera, baseline}};
-  StereoFrame::Ptr frame2{
-      new StereoFrame{0.0, im2_lft, im2_rgt, camera, baseline}};
+  StereoFrame::Ptr frame1{new StereoFrame{0.0, im1_lft, im1_rgt, camera}};
+  StereoFrame::Ptr frame2{new StereoFrame{0.0, im2_lft, im2_rgt, camera}};
+
+  AINFO << frame1->camera()->ToString();
 
   FeatureExtractor extractor(100);
   extractor.Process(frame1);
@@ -39,7 +40,7 @@ int main(int argc, char **argv) {
                {0, 255, 0});
   }
   for (auto &feat : frame1->features_rgt()) {
-    if (feat == nullptr) continue;
+    if (!feat) continue;
     cv::circle(im1_rgt,
                {static_cast<int>(feat->pt.x), static_cast<int>(feat->pt.y)}, 5,
                {0, 255, 0});
@@ -50,7 +51,7 @@ int main(int argc, char **argv) {
                {0, 255, 0});
   }
   for (auto &feat : frame2->features_rgt()) {
-    if (feat == nullptr) continue;
+    if (!feat) continue;
     cv::circle(im2_rgt,
                {static_cast<int>(feat->pt.x), static_cast<int>(feat->pt.y)}, 5,
                {0, 255, 0});
@@ -70,7 +71,7 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < frame1->features().size(); ++i) {
     const auto &feat1 = frame1->features()[i];
     const auto &feat2 = frame1->features_rgt().at(i);
-    if (feat2 == nullptr) continue;
+    if (!feat2) continue;
     cv::Scalar color{0, 0, 255};
     if (std::abs(feat2->pt.y - feat1->pt.y) <= 1.5) {
       color = {0, 255, 0};

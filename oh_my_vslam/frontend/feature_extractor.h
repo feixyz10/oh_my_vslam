@@ -18,22 +18,22 @@ class FeatureExtractor {
     gftt_ = cv::GFTTDetector::create(max_feature_number, 0.01, 20);
   }
 
-  void Process(const StereoFrame::Ptr &frame) {
+  size_t Process(const StereoFrame::Ptr &frame) {
     DetectFeatures(frame);
-    LKTrackFeature(frame);
+    return LKTrackFeature(frame);
   }
 
-  void Process(const Frame::ConstPtr &frame_last,
-               const Frame::Ptr &frame_curr) {
-    LKTrackFeature(frame_last, frame_curr);
+  size_t Process(const Frame::ConstPtr &frame_last,
+                 const Frame::Ptr &frame_curr) {
+    return LKTrackFeature(frame_last, frame_curr);
   }
 
  protected:
   void DetectFeatures(const Frame::Ptr &frame) {
     cv::Mat mask(frame->img().size(), CV_8UC1, 255);
     for (const auto &feat : frame->features()) {
-      cv::rectangle(mask, feat->pt - cv::Point2f(10, 10),
-                    feat->pt + cv::Point2f(10, 10), 0, CV_FILLED);
+      cv::rectangle(mask, feat->pt - cv::Point2d(10, 10),
+                    feat->pt + cv::Point2d(10, 10), 0, CV_FILLED);
     }
     std::vector<cv::KeyPoint> keypoints;
     gftt_->detect(frame->img(), keypoints, mask);
@@ -45,14 +45,15 @@ class FeatureExtractor {
   }
 
   // use LK flow to track feature points in the right image
-  void LKTrackFeature(const StereoFrame::Ptr &frame) {
+  size_t LKTrackFeature(const StereoFrame::Ptr &frame) {
     std::vector<cv::Point2f> kps_lft, kps_rgt;
+    StereoCamera::ConstPtr cam = frame->stereo_camera();
     // initial guess
     for (auto &feat : frame->features()) {
       kps_lft.push_back(feat->pt);
       auto mp = feat->map_point.lock();
       if (mp) {
-        double disp = frame->Disparity(mp->position());
+        double disp = cam->Disparity(mp->position());
         kps_rgt.emplace_back(feat->pt.x - disp, feat->pt.y);
       } else {
         kps_rgt.push_back(feat->pt);
@@ -81,21 +82,21 @@ class FeatureExtractor {
     }
     AINFO << "Frame " << frame->id() << ": " << num_tracked
           << " features tracked in right image.";
+    return num_tracked;
   }
 
   // use LK flow to track feature points in the curr image
-  void LKTrackFeature(const Frame::ConstPtr &frame_last,
-                      const Frame::Ptr &frame_curr) {
+  size_t LKTrackFeature(const Frame::ConstPtr &frame_last,
+                        const Frame::Ptr &frame_curr) {
     std::vector<cv::Point2f> kps_last, kps_curr;
     // initial guess
-    const auto &pose_world2curr = frame_curr->pose().Inv();
+    const auto &pose_w2c = frame_curr->pose_w2c();
     for (auto &feat : frame_last->features()) {
       kps_last.push_back(feat->pt);
       if (feat->map_point.lock()) {
         Eigen::Vector2d px = frame_curr->camera()->Project(
-            feat->map_point.lock()->position(), pose_world2curr);
-        kps_curr.emplace_back(static_cast<float>(px.x()),
-                              static_cast<float>(px.y()));
+            feat->map_point.lock()->position(), pose_w2c);
+        kps_curr.emplace_back(px.x(), px.y());
       } else {
         kps_curr.push_back(feat->pt);
       }
@@ -122,6 +123,7 @@ class FeatureExtractor {
     }
     AINFO << "Frame " << frame_curr->id() << ": " << num_tracked
           << " features tracked from last frame.";
+    return num_tracked;
   }
 
   //   YAML::Node config_;
