@@ -17,7 +17,7 @@ struct Feature {
                    const MapPoint::Ptr &map_point = nullptr)
       : pt(pt), frame(frame), map_point(map_point) {}
 
-  cv::Point2d pt;
+  cv::Point2f pt;
   std::weak_ptr<Frame> frame;
   std::weak_ptr<MapPoint> map_point;
   bool is_on_left_img = true;  // for stereo only

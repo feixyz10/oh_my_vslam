@@ -13,7 +13,11 @@ class Map {
  public:
   void InsertKeyFrame(const Frame::Ptr &key_frame);
 
+  void RemoveKeyFrame(const size_t id);
+
   void InsertMapPoint(const MapPoint::Ptr &map_point);
+
+  void RemoveMapPoint(const size_t id);
 
   const auto &map_points() const {
     return map_points_;

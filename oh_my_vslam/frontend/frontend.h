@@ -7,7 +7,8 @@
 #include "oh_my_vslam/core/frame.h"
 #include "oh_my_vslam/core/map.h"
 #include "oh_my_vslam/core/map_point.h"
-#include "oh_my_vslam/frontend/feature_extractor.h"
+#include "oh_my_vslam/frontend/feature_tracker.h"
+#include "oh_my_vslam/frontend/vo.h"
 
 namespace oh_my_vslam {
 
@@ -30,8 +31,6 @@ class Frontend {
  protected:
   void Initialize(const StereoFrame::Ptr &frame);
 
-  void UpdateMap() const;
-
   void Track(const StereoFrame::Ptr &frame);
 
   void InsertKeyframe(const StereoFrame::Ptr &frame);
@@ -42,7 +41,9 @@ class Frontend {
 
   FrontendState state_ = FrontendState::INITIALIZING;
   StereoCamera::ConstPtr camera_ = nullptr;
-  std::unique_ptr<FeatureExtractor> feature_extractor_;
+  StereoFrame::Ptr frame_last_{nullptr};
+  std::unique_ptr<FeatureTracker> feature_tracker_;
+  std::unique_ptr<VO> vo_;
   YAML::Node config_;
 };
 

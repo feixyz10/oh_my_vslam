@@ -2,7 +2,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "common/common.h"
-#include "oh_my_vslam/frontend/feature_extractor.h"
+#include "oh_my_vslam/frontend/feature_tracker.h"
 
 using namespace common;
 using namespace oh_my_vslam;
@@ -29,10 +29,9 @@ int main(int argc, char **argv) {
 
   AINFO << frame1->camera()->ToString();
 
-  FeatureExtractor extractor(100);
-  extractor.Process(frame1);
-  extractor.Process(frame1, frame2);
-  //   extractor.Process(frame2);
+  FeatureTracker tracker(100, true);
+  tracker.Track(frame1);
+  tracker.Track(frame1, frame2);
 
   for (auto &feat : frame1->features()) {
     cv::circle(im1_lft,

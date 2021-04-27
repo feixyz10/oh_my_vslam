@@ -2,7 +2,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "common/common.h"
-#include "oh_my_vslam/frontend/feature_extractor.h"
+#include "oh_my_vslam/frontend/feature_tracker.h"
 #include "oh_my_vslam/frontend/vo.h"
 
 using namespace common;
@@ -28,12 +28,12 @@ int main(int argc, char **argv) {
   StereoFrame::Ptr frame2{new StereoFrame{0.0, im2_lft, im2_rgt, camera}};
   AINFO << frame1->camera()->ToString();
 
-  FeatureExtractor extractor(100);
-  extractor.Process(frame1);
+  FeatureTracker extractor(100, true);
+  extractor.Track(frame1);
   VO vo;
   vo.Process(frame1, true);
 
-  extractor.Process(frame1, frame2);
+  extractor.Track(frame1, frame2);
   vo.Process(frame2);
   AINFO << frame2->pose_c2w().ToString();
   AINFO << "Error: " << (t - frame2->pose_c2w().t_vec()).norm()

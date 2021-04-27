@@ -3,6 +3,7 @@
 #include "common/geometry/pose3d.h"
 #include "oh_my_vslam/core/frame.h"
 #include "oh_my_vslam/core/map.h"
+#include "oh_my_vslam/frontend/feature_tracker.h"
 
 namespace oh_my_vslam {
 
@@ -23,7 +24,7 @@ class VO {
   void FindOutliers(const Frame::ConstPtr &frame,
                     std::vector<size_t> *outlier_indices) const;
 
-  StereoFrame::Ptr frame_last_;
+  DISALLOW_COPY_AND_ASSIGN(VO);
 };
 
 }  // namespace oh_my_vslam

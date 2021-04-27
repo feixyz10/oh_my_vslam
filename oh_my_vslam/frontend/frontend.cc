@@ -5,7 +5,7 @@ namespace oh_my_vslam {
 Frontend::Frontend(const StereoCamera::ConstPtr &camera,
                    const YAML::Node &config)
     : camera_(camera), config_(config) {
-  feature_extractor_.reset(new FeatureExtractor(150));
+  feature_tracker_.reset(new FeatureTracker(150));
 };
 
 void Frontend::Process(const StereoFrame::Ptr &frame) {
@@ -20,44 +20,44 @@ void Frontend::Process(const StereoFrame::Ptr &frame) {
       Reset();
       break;
   }
+  frame_last_ = frame;
 }
 
 void Frontend::Initialize(const StereoFrame::Ptr &frame) {
-  size_t number_feats = feature_extractor_->Process(frame);
+  size_t number_feats = feature_tracker_->Track(frame);
   if (number_feats < 50) {
     AINFO << "Initialization failed";
     return;
   }
+  vo_->Process(frame, true);
   state_ = FrontendState::TRACKING;
-  UpdateMap();
   InsertKeyframe(frame);
   AINFO << "Initialization OK";
 }
 
 void Frontend::Track(const StereoFrame::Ptr &frame) {
-  // size_t number_tracked = feature_extractor_->Process(frame_last_, frame);
-  // if (number_tracked < 50) {
-  //   state_ = FrontendState::LOST;
-  //   AERROR << "Tracking lost";
-  //   return;
-  // }
-  // size_t number_inlier = 60;
-  // if (number_inlier < 50) {
-  //   state_ = FrontendState::LOST;
-  //   AERROR << "Tracking lost";
-  //   return;
-  // }
-  // AINFO << "Tracking OK";
-  // if (number_inlier < 80) {
-  //   InsertKeyframe(frame);
-  // }
+  size_t number_tracked = feature_tracker_->Track(frame_last_, frame);
+  if (number_tracked < 50) {
+    state_ = FrontendState::LOST;
+    AERROR << "Tracking lost";
+    return;
+  }
+  size_t number_inlier = vo_->Process(frame);
+  if (number_inlier < 50) {
+    state_ = FrontendState::LOST;
+    AERROR << "Tracking lost";
+    return;
+  }
+  AINFO << "Tracking OK";
+  if (number_inlier < 66) {
+    InsertKeyframe(frame);
+  }
 }
 
 void Frontend::InsertKeyframe(const StereoFrame::Ptr &frame) {
-  feature_extractor_->Process(frame);
+  feature_tracker_->Track(frame);
+  frame->SetKeyFrame();
 }
-
-void Frontend::UpdateMap() const {}
 
 void Frontend::Reset() {}
 

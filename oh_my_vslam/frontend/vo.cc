@@ -5,16 +5,13 @@
 namespace oh_my_vslam {
 
 size_t VO::Process(const StereoFrame::Ptr &frame, bool init) {
-  if (init) {
-    frame_last_ = frame;
-    return Triangulation(frame);
-  }
+  if (init) return Triangulation(frame);
+
   std::vector<size_t> outlier_indices;
   for (size_t i = 0; i < frame->features().size(); ++i) {
     if (!frame->features()[i]->map_point.lock()) outlier_indices.push_back(i);
   }
   for (size_t iteration = 0; iteration < 5; ++iteration) {
-    AINFO << "Outlier num: " << outlier_indices.size();
     Solver solver(frame->pose_w2c());
     size_t j = 0;
     for (size_t i = 0; i < frame->features().size(); ++i) {
@@ -31,6 +28,9 @@ size_t VO::Process(const StereoFrame::Ptr &frame, bool init) {
     }
     frame->SetPose(pose_new.Inv());
     FindOutliers(frame, &outlier_indices);
+  }
+  for (auto &i : outlier_indices) {
+    frame->features()[i]->map_point.reset();
   }
   size_t num_inlier = frame->features().size() - outlier_indices.size();
   AINFO << "Odometry: number of outliers/inliers: " << outlier_indices.size()
