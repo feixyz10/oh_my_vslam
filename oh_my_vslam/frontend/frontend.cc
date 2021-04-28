@@ -63,6 +63,7 @@ void Frontend::InsertKeyframe(const StereoFrame::Ptr &frame, bool init) {
     vo_->Triangulate(frame);
   }
   frame->SetKeyFrame();
+  Map::Instance()->InsertKeyFrame(frame);
 }
 
 void Frontend::Reset() {}
