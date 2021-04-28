@@ -22,21 +22,13 @@ class MapPoint {
     id_ = static_id++;
   };
 
-  size_t id() const {
-    return id_;
-  }
+  size_t id() const { return id_; }
 
-  Eigen::Vector3d position() const {
-    return position_;
-  }
+  Eigen::Vector3d position() const { return position_; }
 
-  void SetPosition(const Eigen::Vector3d &position) {
-    position_ = position;
-  }
+  void SetPosition(const Eigen::Vector3d &position) { position_ = position; }
 
-  const auto &features() const {
-    return features_;
-  }
+  const auto &features() const { return features_; }
 
   void AddFeature(const std::shared_ptr<Feature> &feature);
 

@@ -1,13 +1,14 @@
 #include "oh_my_vslam/frontend/solver.h"
 
 namespace oh_my_vslam {
+namespace frontend {
 
 namespace {
 double kHuberLossScale = 0.1;
 }
 
-double ReprojectionCostFunction::Cost(const common::Pose3d &pose,
-                                      const Feature &feature) {
+double ReprojCostFunction::Cost(const common::Pose3d &pose,
+                                const Feature &feature) {
   Eigen::Vector3d mp = feature.map_point.lock()->position();
   Eigen::Vector2d kp = {feature.pt.x, feature.pt.y};
   auto frame = feature.frame.lock();
@@ -37,8 +38,7 @@ bool Solver::Solve(int max_iter_num, bool verbose, common::Pose3d *const pose) {
 }
 
 void Solver::AddEdge(const Feature &feature) {
-  ceres::CostFunction *cost_function =
-      ReprojectionCostFunction::Create(feature);
+  ceres::CostFunction *cost_function = ReprojCostFunction::Create(feature);
   problem_.AddResidualBlock(cost_function, loss_function_, r_quat_, t_vec_);
 }
 
@@ -46,4 +46,5 @@ common::Pose3d Solver::GetPose() const {
   return common::Pose3d(r_quat_, t_vec_);
 }
 
+}  // namespace frontend
 }  // namespace oh_my_vslam

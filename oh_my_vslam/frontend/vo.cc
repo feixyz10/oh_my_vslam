@@ -14,7 +14,7 @@ size_t VO::PnP(const Frame::Ptr &frame) {
       AERROR << "PnP: no map point";
       return 0;
     }
-    Solver solver(frame->pose_w2c());
+    frontend::Solver solver(frame->pose_w2c());
     size_t j = 0;
     for (size_t i = 0; i < frame->features().size(); ++i) {
       if (outlier_indices[j] == i) {
@@ -75,7 +75,7 @@ void VO::FindOutliers(const Frame::ConstPtr &frame,
       dists_sq.push_back(std::numeric_limits<double>::max());
       continue;
     }
-    double cost = ReprojectionCostFunction::Cost(frame->pose_w2c(), *feat);
+    double cost = frontend::ReprojCostFunction::Cost(frame->pose_w2c(), *feat);
     double cost_sq = cost * cost;
     dists.push_back(cost);
     dists_sq.push_back(cost_sq);

@@ -1,4 +1,5 @@
 #include "oh_my_vslam/core/map_point.h"
+
 #include "oh_my_vslam/core/feature.h"
 
 namespace oh_my_vslam {

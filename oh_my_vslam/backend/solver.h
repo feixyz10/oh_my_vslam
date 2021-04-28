@@ -7,31 +7,31 @@
 #include "oh_my_vslam/core/feature.h"
 
 namespace oh_my_vslam {
+namespace backend {
 
-class ReprojectionCostFunction {
+class ReprojCostFunction {
  public:
-  explicit ReprojectionCostFunction(const Feature &feature)
-      : feature_(feature) {}
+  explicit ReprojCostFunction(const Feature &feature) : feature_(feature) {}
 
   template <typename T>
   bool operator()(const T *const r_quat, const T *const t_vec,
-                  T *residual) const;
+                  const T *const point, T *residual) const;
 
   static double Cost(const common::Pose3d &pose, const Feature &feature);
 
   static ceres::CostFunction *Create(const Feature &feature) {
-    return new ceres::AutoDiffCostFunction<ReprojectionCostFunction, 2, 4, 3>(
-        new ReprojectionCostFunction(feature));
+    return new ceres::AutoDiffCostFunction<ReprojCostFunction, 2, 4, 3, 3>(
+        new ReprojCostFunction(feature));
   }
 
  private:
   Feature feature_;
-  DISALLOW_COPY_AND_ASSIGN(ReprojectionCostFunction);
+  DISALLOW_COPY_AND_ASSIGN(ReprojCostFunction);
 };
 
 class Solver {
  public:
-  Solver() = default;
+  Solver();
 
   void AddPoseVertex(size_t pose_id, const common::Pose3d &pose);
 
@@ -41,27 +41,37 @@ class Solver {
 
   bool Solve(int max_iter_num = 5, bool verbose = false);
 
-  const common::Pose3d &GetPose(size_t pose_id) const;
+  common::Pose3d GetPose(size_t pose_id) const;
 
-  const Eigen::Vector3d &GetPoint(size_t point_id) const;
+  Eigen::Vector3d GetPoint(size_t point_id) const;
 
  private:
   ceres::Problem problem_;
 
   ceres::LossFunction *loss_function_;
 
-  std::unordered_map<size_t, common::Pose3d> poses_;
-  std::unordered_map<size_t, Eigen::Vector3d> points_;
-  double r_quat_[4], t_vec_[3];
+  struct APose {
+    Eigen::Quaterniond r_quat;
+    Eigen::Vector3d t_vec;
+    explicit APose(const common::Pose3d &pose) {
+      r_quat = pose.r_quat();
+      t_vec = pose.t_vec();
+    }
+    const common::Pose3d ToPose3d() const { return {r_quat, t_vec}; }
+  };
 
-  DISALLOW_COPY_AND_ASSIGN(Solver)
+  std::unordered_map<size_t, APose> poses_;
+  std::unordered_map<size_t, Eigen::Vector3d> points_;
+  std::unordered_map<size_t, bool> poses_added_;
+  std::unordered_map<size_t, bool> points_added_;
+
+  DISALLOW_COPY_AND_ASSIGN(Solver);
 };
 
 template <typename T>
-bool ReprojectionCostFunction::operator()(const T *const r_quat,
-                                          const T *const t_vec,
-                                          T *residual) const {
-  Eigen::Matrix<T, 3, 1> mp = feature_.map_point.lock()->position().cast<T>();
+bool ReprojCostFunction::operator()(const T *const r_quat, const T *const t_vec,
+                                    const T *const point, T *residual) const {
+  Eigen::Matrix<T, 3, 1> mp{point[0], point[1], point[2]};
   Eigen::Matrix<T, 2, 1> kp = {T(feature_.pt.x), T(feature_.pt.y)};
   Eigen::Matrix<T, 3, 3> intrinsic =
       feature_.frame.lock()->camera()->intrinsic_mat().cast<T>();
@@ -73,4 +83,5 @@ bool ReprojectionCostFunction::operator()(const T *const r_quat,
   return true;
 }
 
+}  // namespace backend
 }  // namespace oh_my_vslam

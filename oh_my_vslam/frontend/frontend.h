@@ -24,9 +24,7 @@ class Frontend {
 
   void Process(const StereoFrame::Ptr &frame);
 
-  FrontendState state() const {
-    return state_;
-  }
+  FrontendState state() const { return state_; }
 
  protected:
   void Initialize(const StereoFrame::Ptr &frame);

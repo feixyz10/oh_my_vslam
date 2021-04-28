@@ -40,9 +40,7 @@ class Camera {
 
   Eigen::Matrix<double, 5, 1> distortion_params() const;
 
-  bool zero_distortion() const {
-    return is_zero_distortion_;
-  }
+  bool zero_distortion() const { return is_zero_distortion_; }
 
   virtual std::string ToString() const;
 
@@ -77,9 +75,7 @@ class StereoCamera : public Camera {
 
   StereoCamera(const Eigen::Vector4d &intrinsic_params, double baseline);
 
-  double baseline() const {
-    return baseline_;
-  }
+  double baseline() const { return baseline_; }
 
   Eigen::Vector2d ProjectToLeft(const Eigen::Vector3d &pt_w,
                                 const common::Pose3d &pose_w2c = {}) const;

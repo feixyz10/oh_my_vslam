@@ -6,6 +6,6 @@ DerivePointerAlignment: false
 PointerAlignment: Right
 BreakBeforeBraces: Attach
 AllowShortBlocksOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: true
 Cpp11BracedListStyle: true
 Standard: Cpp11

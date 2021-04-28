@@ -23,8 +23,11 @@ int main(int argc, char **argv) {
   AINFO << camera->ToString();
   Frontend frontend(camera);
 
-  std::vector<int> img_ids = common::Range(100, 160);
+  AINFO << 1111;
+  std::vector<int> img_ids = common::Range(100, 105);
   AINFO << "Image num: " << img_ids.size();
+  AINFO << "First image path: " << im_path + "left/" << std::setw(6)
+        << std::setfill('0') << img_ids[0] << ".png";
 
   std::vector<Eigen::Vector3d> tvecs;
   for (auto id : img_ids) {

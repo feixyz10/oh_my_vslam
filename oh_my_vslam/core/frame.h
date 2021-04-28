@@ -30,37 +30,21 @@ class Frame {
     id_ = static_id++;
   }
 
-  size_t id() const {
-    return id_;
-  }
+  size_t id() const { return id_; }
 
-  double timestamp() const {
-    return timestamp_;
-  }
+  double timestamp() const { return timestamp_; }
 
-  bool is_keyframe() const {
-    return is_keyframe_;
-  }
+  bool is_keyframe() const { return is_keyframe_; }
 
-  size_t keyframe_id() const {
-    return keyframe_id_;
-  }
+  size_t keyframe_id() const { return keyframe_id_; }
 
-  const cv::Mat &img() const {
-    return img_;
-  }
+  const cv::Mat &img() const { return img_; }
 
-  Camera::ConstPtr camera() const {
-    return camera_;
-  }
+  Camera::ConstPtr camera() const { return camera_; }
 
-  const common::Pose3d &pose_c2w() const {
-    return pose_c2w_;
-  }
+  const common::Pose3d &pose_c2w() const { return pose_c2w_; }
 
-  const common::Pose3d &pose_w2c() const {
-    return pose_w2c_;
-  }
+  const common::Pose3d &pose_w2c() const { return pose_w2c_; }
 
   void SetPose(const common::Pose3d &pose_c2w) {
     pose_c2w_ = pose_c2w;
@@ -77,9 +61,7 @@ class Frame {
     return features_;
   }
 
-  std::vector<std::shared_ptr<Feature>> &features() {
-    return features_;
-  }
+  std::vector<std::shared_ptr<Feature>> &features() { return features_; }
 
  protected:
   size_t id_ = 0;
@@ -107,9 +89,7 @@ class RGBDFrame : public Frame {
             const common::Pose3d &pose_c2w = {})
       : Frame(timestamp, img, camera, pose_c2w), depth_(depth) {}
 
-  const cv::Mat &depth() const {
-    return depth_;
-  }
+  const cv::Mat &depth() const { return depth_; }
 
  protected:
   cv::Mat depth_;
@@ -127,9 +107,7 @@ class StereoFrame : public Frame {
               const common::Pose3d &pose_c2w = {})
       : Frame(timestamp, img_lft, camera, pose_c2w), img_rgt_(img_rgt) {}
 
-  const cv::Mat &img_rgt() const {
-    return img_rgt_;
-  }
+  const cv::Mat &img_rgt() const { return img_rgt_; }
 
   const std::vector<std::shared_ptr<Feature>> &features_rgt() const {
     return features_rgt_;

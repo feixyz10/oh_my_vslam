@@ -19,13 +19,9 @@ class Map {
 
   void RemoveMapPoint(const size_t id);
 
-  const auto &map_points() const {
-    return map_points_;
-  }
+  const auto &map_points() const { return map_points_; }
 
-  const auto &key_frames() const {
-    return key_frames_;
-  }
+  const auto &key_frames() const { return key_frames_; }
 
  protected:
   std::unordered_map<size_t, MapPoint::Ptr> map_points_;

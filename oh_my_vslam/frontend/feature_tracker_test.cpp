@@ -1,8 +1,9 @@
+#include "oh_my_vslam/frontend/feature_tracker.h"
+
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
 #include "common/common.h"
-#include "oh_my_vslam/frontend/feature_tracker.h"
 
 using namespace common;
 using namespace oh_my_vslam;
@@ -16,10 +17,10 @@ int main(int argc, char **argv) {
   InitG3Logging();
   std::string im_path = argv[1];
   if (im_path.back() != '/') im_path.push_back('/');
-  cv::Mat im1_lft = cv::imread(im_path + "000600_left.png");
-  cv::Mat im1_rgt = cv::imread(im_path + "000600_right.png");
-  cv::Mat im2_lft = cv::imread(im_path + "000601_left.png");
-  cv::Mat im2_rgt = cv::imread(im_path + "000601_right.png");
+  cv::Mat im1_lft = cv::imread(im_path + "/left/000100.png");
+  cv::Mat im1_rgt = cv::imread(im_path + "/right/000100.png");
+  cv::Mat im2_lft = cv::imread(im_path + "/left/000101.png");
+  cv::Mat im2_rgt = cv::imread(im_path + "/right/000101.png");
 
   AINFO << "Image shape: " << im1_lft.rows << " x " << im1_lft.cols << " x "
         << im1_lft.channels() << ": " << im1_lft.type();

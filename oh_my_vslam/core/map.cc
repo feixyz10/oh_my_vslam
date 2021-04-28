@@ -12,12 +12,8 @@ void Map::InsertMapPoint(const MapPoint::Ptr &map_point) {
   map_points_.insert({map_point->id(), map_point});
 }
 
-void Map::RemoveKeyFrame(const size_t id) {
-  key_frames_.erase(id);
-}
+void Map::RemoveKeyFrame(const size_t id) { key_frames_.erase(id); }
 
-void Map::RemoveMapPoint(const size_t id) {
-  map_points_.erase(id);
-}
+void Map::RemoveMapPoint(const size_t id) { map_points_.erase(id); }
 
 }  // namespace oh_my_vslam
