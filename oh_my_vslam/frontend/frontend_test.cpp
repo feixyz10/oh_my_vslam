@@ -15,8 +15,6 @@ StereoCamera::Ptr camera{
     new StereoCamera{7.070912000000e+02, 7.070912000000e+02, 6.018873000000e+02,
                      1.831104000000e+02, baseline}};
 
-Eigen::Vector3d t(-0.00145573, -0.01786178, 0.89830408);
-
 int main(int argc, char **argv) {
   std::string im_path = argv[1];
   if (im_path.back() != '/') im_path.push_back('/');
@@ -25,21 +23,30 @@ int main(int argc, char **argv) {
   AINFO << camera->ToString();
   Frontend frontend(camera);
 
-  std::vector<int> img_ids{600, 601};
-  Eigen::Vector3d tn;
+  std::vector<int> img_ids = common::Range(100, 160);
+  AINFO << "Image num: " << img_ids.size();
+
+  std::vector<Eigen::Vector3d> tvecs;
   for (auto id : img_ids) {
     std::ostringstream oss;
-    oss << im_path << std::setw(6) << std::setfill('0') << id;
-    cv::Mat im_lft = cv::imread(im_path + oss.str() + "_left.png");
-    cv::Mat im_rgt = cv::imread(im_path + oss.str() + "_right.png");
+    oss << std::setw(6) << std::setfill('0') << id;
+    cv::Mat im_lft = cv::imread(im_path + "left/" + oss.str() + ".png");
+    cv::Mat im_rgt = cv::imread(im_path + "right/" + oss.str() + ".png");
     StereoFrame::Ptr frame{new StereoFrame{0.0, im_lft, im_rgt, camera}};
     frontend.Process(frame);
-    AINFO << "Frame " << frame->id() << ": " << frame->pose_c2w().ToString();
-    tn = frame->pose_c2w().t_vec();
+    if (FrontendState::LOST == frontend.state()) {
+      AERROR << "tracking lost";
+      break;
+    }
+    AINFO << "####### Frame " << frame->id() << ": "
+          << frame->pose_c2w().ToString();
+    tvecs.push_back(frame->pose_c2w().t_vec());
   }
 
-  AINFO << "Error: " << (t - tn).norm()
-        << ", relative error: " << (t - tn).norm() / t.norm();
+  std::ofstream ofs(im_path + "pose_pr.txt");
+  for (auto &t : tvecs) {
+    ofs << t.x() << " " << t.y() << " " << t.z() << std::endl;
+  }
 
   return 0;
 }

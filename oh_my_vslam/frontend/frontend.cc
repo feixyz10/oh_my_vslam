@@ -31,33 +31,37 @@ void Frontend::Initialize(const StereoFrame::Ptr &frame) {
     return;
   }
   vo_->Triangulate(frame);
+  InsertKeyframe(frame, true);
   state_ = FrontendState::TRACKING;
-  InsertKeyframe(frame);
   AINFO << "Initialization OK";
 }
 
 void Frontend::Track(const StereoFrame::Ptr &frame) {
+  frame->SetPose(frame_last_->pose_c2w() * pose_delta_);
   size_t number_tracked = feature_tracker_->Track(frame_last_, frame);
-  if (number_tracked < 36) {
+  if (number_tracked < 50) {
     state_ = FrontendState::LOST;
     AERROR << "Tracking lost";
     return;
   }
   size_t number_inlier = vo_->PnP(frame);
-  if (number_inlier < 36) {
+  if (number_inlier < 50) {
     state_ = FrontendState::LOST;
     AERROR << "Tracking lost";
     return;
   }
   AINFO << "Tracking OK";
-  if (number_inlier < 60) {
+  if (number_inlier < 80) {
     InsertKeyframe(frame);
   }
+  pose_delta_ = frame_last_->pose_w2c() * frame->pose_c2w();
 }
 
-void Frontend::InsertKeyframe(const StereoFrame::Ptr &frame) {
-  // feature_tracker_->Track(frame);
-  vo_->Triangulate(frame);
+void Frontend::InsertKeyframe(const StereoFrame::Ptr &frame, bool init) {
+  if (!init) {
+    feature_tracker_->Track(frame);
+    vo_->Triangulate(frame);
+  }
   frame->SetKeyFrame();
 }
 

@@ -33,13 +33,14 @@ class Frontend {
 
   void Track(const StereoFrame::Ptr &frame);
 
-  void InsertKeyframe(const StereoFrame::Ptr &frame);
+  void InsertKeyframe(const StereoFrame::Ptr &frame, bool init = false);
 
   void Reset();
 
   FrontendState state_ = FrontendState::INITIALIZING;
   StereoCamera::ConstPtr camera_ = nullptr;
   StereoFrame::Ptr frame_last_{nullptr};
+  common::Pose3d pose_delta_;
   std::unique_ptr<FeatureTracker> feature_tracker_;
   std::unique_ptr<VO> vo_;
   YAML::Node config_;
