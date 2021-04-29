@@ -72,22 +72,18 @@ class Pose3d {
     std::ostringstream oss;
     double w = r_quat_.w(), a = r_quat_.x(), b = r_quat_.y(), c = r_quat_.z();
     double x = t_vec_.x(), y = t_vec_.y(), z = t_vec_.z();
-    oss << std::setprecision(3) << "[Pose3d] r_quat = (" << w << " " << a << " "
-        << b << " " << c << "), p = (" << x << " " << y << " " << z << ")";
+    oss << std::setprecision(3) << "[Pose3d r_quat = (" << w << " " << a << " "
+        << b << " " << c << "), p = (" << x << " " << y << " " << z << ")]";
     return oss.str();
   }
 
   // const Eigen::Quaterniond& r_quat() const { return r_quat_; }
 
-  const Eigen::Quaterniond &r_quat() const {
-    return r_quat_;
-  }
+  const Eigen::Quaterniond &r_quat() const { return r_quat_; }
 
   // const Eigen::Vector3d& t_vec() const { return t_vec_; }
 
-  const Eigen::Vector3d &t_vec() const {
-    return t_vec_;
-  }
+  const Eigen::Vector3d &t_vec() const { return t_vec_; }
 
  protected:
   Eigen::Quaterniond r_quat_;  // orientation/rotation

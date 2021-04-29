@@ -19,35 +19,46 @@ double ReprojCostFunction::Cost(const common::Pose3d &pose,
 Solver::Solver() { loss_function_ = new ceres::HuberLoss(kHuberLossScale); }
 
 void Solver::AddPoseVertex(size_t pose_id, const common::Pose3d &pose) {
-  poses_.insert({pose_id, APose(pose)});
+  poses_.insert({pose_id, APose(pose.Inv())});
   poses_added_.insert({pose_id, false});
 }
 
 void Solver::AddPointVertex(size_t point_id, const Eigen::Vector3d &point) {
   points_.insert({point_id, point});
-  poses_added_.insert({point_id, false});
+  points_added_.insert({point_id, false});
 }
 
 void Solver::AddEdge(const Feature &feature) {
   auto fm = feature.frame.lock();
   auto mp = feature.map_point.lock();
-  auto &pose = poses_.at(fm->id());
-  double *r_quat = pose.r_quat.coeffs().data();
-  double *t_vec = pose.t_vec.data();
   double *point = points_.at(mp->id()).data();
-  if (!poses_added_.at(fm->id())) {
-    problem_.AddParameterBlock(r_quat, 4,
-                               new ceres::EigenQuaternionParameterization());
-    problem_.AddParameterBlock(t_vec, 3);
-    poses_added_.at(fm->id()) = true;
+  double *r_quat = nullptr;
+  double *t_vec = nullptr;
+  if (poses_.count(fm->keyframe_id())) {
+    auto &pose = poses_.at(fm->keyframe_id());
+    r_quat = pose.r_quat.coeffs().data();
+    t_vec = pose.t_vec.data();
+    if (!poses_added_.at(fm->keyframe_id())) {
+      problem_.AddParameterBlock(r_quat, 4,
+                                 new ceres::EigenQuaternionParameterization());
+      problem_.AddParameterBlock(t_vec, 3);
+      poses_added_.at(fm->keyframe_id()) = true;
+    }
   }
-  if (!points_added_.at(fm->id())) {
+  if (!points_added_.at(mp->id())) {
     problem_.AddParameterBlock(point, 3);
-    points_added_.at(fm->id()) = true;
+    points_added_.at(mp->id()) = true;
   }
-  ceres::CostFunction *cost_function = ReprojCostFunction::Create(feature);
-  problem_.AddResidualBlock(cost_function, loss_function_, r_quat, t_vec,
-                            point);
+  if (r_quat && t_vec) {
+    ceres::CostFunction *cost_function =
+        ReprojCostFunction::Create(feature, true);
+    problem_.AddResidualBlock(cost_function, loss_function_, r_quat, t_vec,
+                              point);
+  } else {
+    ceres::CostFunction *cost_function =
+        ReprojCostFunction::Create(feature, false);
+    problem_.AddResidualBlock(cost_function, loss_function_, point);
+  }
 }
 
 bool Solver::Solve(int max_iter_num, bool verbose) {
@@ -61,12 +72,16 @@ bool Solver::Solve(int max_iter_num, bool verbose) {
   return summary.termination_type == ceres::CONVERGENCE;
 }
 
-common::Pose3d Solver::GetPose(size_t pose_id) const {
-  return poses_.at(pose_id).ToPose3d();
+bool Solver::GetPose(size_t pose_id, common::Pose3d *pose) const {
+  if (!poses_.count(pose_id)) return false;
+  *pose = poses_.at(pose_id).ToPose3d().Inv();
+  return true;
 }
 
-Eigen::Vector3d Solver::GetPoint(size_t point_id) const {
-  return points_.at(point_id);
+bool Solver::GetPoint(size_t point_id, Eigen::Vector3d *point) const {
+  if (!points_.count(point_id)) return false;
+  *point = points_.at(point_id);
+  return true;
 }
 
 }  // namespace backend

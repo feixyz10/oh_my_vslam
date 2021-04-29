@@ -1,9 +1,7 @@
-#include "oh_my_vslam/frontend/frontend.h"
+#include "oh_my_vslam/slam.h"
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <sstream>
-#include <vector>
 
 #include "common/common.h"
 
@@ -22,37 +20,38 @@ int main(int argc, char **argv) {
   if (conf_path.back() != '/') conf_path.push_back('/');
 
   InitG3Logging();
-  AINFO << camera->ToString();
-
   YAMLConfig::Instance()->Init(conf_path + "kitti_seq05.yaml");
   auto config = YAMLConfig::Instance()->config();
-  Frontend frontend(config["frontend"]);
+  OhMyVSlame slam(config);
 
   std::vector<int> img_ids = common::Range(100, 160);
   AINFO << "Image num: " << img_ids.size();
   AINFO << "First image path: " << im_path + "left/" << std::setw(6)
         << std::setfill('0') << img_ids[0] << ".png";
 
-  std::vector<Eigen::Vector3d> tvecs;
+  std::unordered_map<size_t, Eigen::Vector4d> tvecs;
   for (auto id : img_ids) {
     std::ostringstream oss;
     oss << std::setw(6) << std::setfill('0') << id;
     cv::Mat im_lft = cv::imread(im_path + "left/" + oss.str() + ".png");
     cv::Mat im_rgt = cv::imread(im_path + "right/" + oss.str() + ".png");
     StereoFrame::Ptr frame{new StereoFrame{0.0, im_lft, im_rgt, camera}};
-    AUSER << "########## Frame " << frame->id() << " ##########";
-    frontend.Process(frame);
-    if (FrontendState::LOST == frontend.state()) {
-      AERROR << "tracking lost";
-      break;
-    }
+    AUSER << "############## frame " << frame->id() << " ##############";
+    if (!slam.Run(0.0, frame)) break;
     AINFO << frame->pose_c2w().ToString();
-    tvecs.push_back(frame->pose_c2w().t_vec());
+    tvecs.insert({frame->id(), frame->pose_c2w().t_vec().homogeneous()});
+    if (!frame->is_keyframe()) {
+      tvecs.at(frame->id())[3] = 0;
+    }
   }
 
-  std::ofstream ofs(im_path + "pose_frontend_pr.txt");
-  for (auto &t : tvecs) {
-    ofs << t.x() << " " << t.y() << " " << t.z() << std::endl;
+  for (auto &[i, frame] : Map::Instance()->key_frames()) {
+    tvecs.at(frame->id()) = frame->pose_c2w().t_vec().homogeneous();
+  }
+
+  std::ofstream ofs(im_path + "pose_slam_pr.txt");
+  for (auto &[i, t] : tvecs) {
+    ofs << t.x() << " " << t.y() << " " << t.z() << " " << t.w() << std::endl;
   }
 
   return 0;

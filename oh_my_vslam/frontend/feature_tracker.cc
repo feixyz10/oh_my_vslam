@@ -23,7 +23,7 @@ size_t FeatureTracker::Track(const StereoFrame::Ptr &frame) {
   // postprocess
   size_t num_tracked = 0;
   for (size_t i = 0; i < status.size(); ++i) {
-    if (status[i] && std::abs(kps_rgt[i].y - kps_lft[i].y) <= 2.0f) {
+    if (status[i] && std::abs(kps_rgt[i].y - kps_lft[i].y) <= 1.6f) {
       Feature::Ptr feat(new Feature(kps_rgt[i], frame));
       feat->is_on_left_img = false;
       frame->features_rgt().push_back(feat);
@@ -32,8 +32,9 @@ size_t FeatureTracker::Track(const StereoFrame::Ptr &frame) {
       frame->features_rgt().push_back(nullptr);
     }
   }
-  AINFO_IF(verbose_) << "Frame " << frame->id() << ": " << num_tracked
-                     << " features tracked on right image from left image.";
+  AINFO_IF(verbose_)
+      << "Frontend: features tracked on right image from left image: "
+      << num_tracked;
   return num_tracked;
 }
 
@@ -67,8 +68,9 @@ size_t FeatureTracker::Track(const Frame::ConstPtr &frame_last,
       ++num_tracked;
     }
   }
-  AINFO_IF(verbose_) << "Frame " << frame_curr->id() << ": " << num_tracked
-                     << " features tracked on current frame from last image.";
+  AINFO_IF(verbose_)
+      << "Frontend: features tracked on current frame from last image: "
+      << num_tracked;
   return num_tracked;
 }
 
@@ -81,11 +83,16 @@ void FeatureTracker::DetectFeature(const Frame::Ptr &frame) {
   bool empty = frame->features().empty();
   std::vector<cv::KeyPoint> keypoints;
   gftt_->detect(frame->img(), keypoints, mask);
+  size_t kp_num = frame->features().size();
   for (auto &kp : keypoints) {
+    if (frame->features().size() >= static_cast<size_t>(max_feature_num_)) {
+      break;
+    }
     frame->features().emplace_back(new Feature(kp.pt, frame));
   }
-  AINFO_IF(verbose_) << "Frame " << frame->id() << ": " << keypoints.size()
-                     << " features detected" << (empty ? " (new)" : "");
+  AINFO_IF(verbose_) << "Frontend: features detected"
+                     << (empty ? "(new): " : ": ")
+                     << frame->features().size() - kp_num;
 }
 
 void FeatureTracker::LKOpticalFlow(const cv::Mat &img1, const cv::Mat &img2,
@@ -94,7 +101,7 @@ void FeatureTracker::LKOpticalFlow(const cv::Mat &img1, const cv::Mat &img2,
                                    std::vector<uchar> *status) {
   std::vector<float> error;
   cv::calcOpticalFlowPyrLK(
-      img1, img2, kps1, *kps2, *status, error, cv::Size(11, 11), 3,
+      img1, img2, kps1, *kps2, *status, error, cv::Size(15, 15), 3,
       cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30,
                        0.01),
       cv::OPTFLOW_USE_INITIAL_FLOW);

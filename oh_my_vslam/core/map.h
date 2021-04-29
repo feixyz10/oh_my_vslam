@@ -25,7 +25,7 @@ class Map {
 
  protected:
   std::unordered_map<size_t, MapPoint::Ptr> map_points_;
-  std::unordered_map<size_t, Frame::Ptr> key_frames_;
+  std::map<size_t, Frame::Ptr> key_frames_;
 
   DECLARE_SINGLETON(Map);
 };

@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   StereoFrame::Ptr frame2{new StereoFrame{0.0, im2_lft, im2_rgt, camera}};
   AINFO << frame1->camera()->ToString();
 
-  FeatureTracker extractor(200, true);
+  FeatureTracker extractor(150, true);
   extractor.Track(frame1);
   VO vo;
   vo.Triangulate(frame1);
@@ -37,7 +37,8 @@ int main(int argc, char **argv) {
   extractor.Track(frame1, frame2);
   vo.PnP(frame2);
   AINFO << frame2->pose_c2w().ToString();
-  AINFO << "Error: " << (t - frame2->pose_c2w().t_vec()).norm()
+  AINFO << "tvec_gt: " << t[0] << " " << t[1] << " " << t[2];
+  AINFO << "tvec error: " << (t - frame2->pose_c2w().t_vec()).norm()
         << ", relative error: "
         << (t - frame2->pose_c2w().t_vec()).norm() / t.norm();
 

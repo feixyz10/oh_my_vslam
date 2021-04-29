@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 
   AINFO << frame1->camera()->ToString();
 
-  FeatureTracker tracker(100, true);
+  FeatureTracker tracker(20, true);
   tracker.Track(frame1);
   tracker.Track(frame1, frame2);
 

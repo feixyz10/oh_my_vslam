@@ -17,8 +17,9 @@ double ReprojCostFunction::Cost(const common::Pose3d &pose,
 }
 
 Solver::Solver(const common::Pose3d &pose) {
-  std::copy_n(pose.r_quat().coeffs().data(), 4, r_quat_);
-  std::copy_n(pose.t_vec().data(), 3, t_vec_);
+  common::Pose3d pose_inv = pose.Inv();
+  std::copy_n(pose_inv.r_quat().coeffs().data(), 4, r_quat_);
+  std::copy_n(pose_inv.t_vec().data(), 3, t_vec_);
   loss_function_ = new ceres::HuberLoss(kHuberLossScale);
   problem_.AddParameterBlock(r_quat_, 4,
                              new ceres::EigenQuaternionParameterization());
@@ -32,7 +33,7 @@ bool Solver::Solve(int max_iter_num, bool verbose, common::Pose3d *const pose) {
   options.minimizer_progress_to_stdout = false;
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem_, &summary);
-  AINFO_IF(verbose) << summary.BriefReport();
+  AINFO_IF(verbose) << "Frontend: " << summary.BriefReport();
   if (pose) *pose = GetPose();
   return summary.termination_type == ceres::CONVERGENCE;
 }
@@ -43,7 +44,7 @@ void Solver::AddEdge(const Feature &feature) {
 }
 
 common::Pose3d Solver::GetPose() const {
-  return common::Pose3d(r_quat_, t_vec_);
+  return common::Pose3d(r_quat_, t_vec_).Inv();
 }
 
 }  // namespace frontend

@@ -20,7 +20,7 @@ class Frontend {
   using ConstPtr = std::shared_ptr<const Frontend>;
 
  public:
-  Frontend(const StereoCamera::ConstPtr &camera, const YAML::Node &config = {});
+  explicit Frontend(const YAML::Node &config);
 
   void Process(const StereoFrame::Ptr &frame);
 
@@ -36,7 +36,6 @@ class Frontend {
   void Reset();
 
   FrontendState state_ = FrontendState::INITIALIZING;
-  StereoCamera::ConstPtr camera_ = nullptr;
   StereoFrame::Ptr frame_last_{nullptr};
   common::Pose3d pose_delta_;
   std::unique_ptr<FeatureTracker> feature_tracker_;

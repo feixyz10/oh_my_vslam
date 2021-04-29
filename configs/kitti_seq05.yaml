@@ -1,0 +1,20 @@
+# global
+is_log_to_file: false
+log_path: /data/log/oh_my_vslam
+vis: true
+save_map_path: /data/log/oh_my_oh_my_vslam.pcd
+
+# frontend
+frontend:
+  verbose: true
+  max_feature_num: 150
+  pnp_iter_num: 5
+  pnp_outlier_std: 2.0
+  min_feature_num_initialization: 100
+  feature_num_lost_th: 50
+  feature_num_keyframe_th: 150
+
+# backend
+backend:
+  verbose: false
+  ba_window_size: 10

@@ -10,7 +10,7 @@ namespace oh_my_vslam {
 
 class FeatureTracker {
  public:
-  explicit FeatureTracker(int max_feature_num = 100, bool verbose = false)
+  explicit FeatureTracker(int max_feature_num = 150, bool verbose = false)
       : max_feature_num_(max_feature_num), verbose_(verbose) {
     gftt_ = cv::GFTTDetector::create(max_feature_num, 0.01, 20);
   };

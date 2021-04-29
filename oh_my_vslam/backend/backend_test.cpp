@@ -22,5 +22,9 @@ int main(int argc, char **argv) {
   std::cout << vb[0] << " " << vb[1] << " " << vb[2] << " " << vb[3]
             << std::endl;
 
+  Eigen::Quaterniond c(va[3], va[0], va[1], va[2]);
+  double *vc = b.coeffs().data();
+  std::cout << vc[0] << " " << vc[1] << " " << vc[2] << " " << vc[3]
+            << std::endl;
   return 0;
 }

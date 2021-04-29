@@ -15,17 +15,19 @@ class VO {
   using ConstPtr = std::shared_ptr<const VO>;
 
  public:
-  VO() = default;
+  explicit VO(bool verbose = false) : verbose_(verbose){};
 
   // return: inlier number
-  size_t PnP(const Frame::Ptr &frame);
+  size_t PnP(const Frame::Ptr &frame, size_t max_iter_num = 5,
+             double outlier_std = 2.0);
 
   size_t Triangulate(const StereoFrame::Ptr &frame);
 
  private:
-  void FindOutliers(const Frame::ConstPtr &frame,
+  void FindOutliers(const Frame::ConstPtr &frame, double outlier_std,
                     std::vector<size_t> *outlier_indices) const;
 
+  bool verbose_ = false;
   DISALLOW_COPY_AND_ASSIGN(VO);
 };
 
